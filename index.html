@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Task List</title>
+</head>
+<body>
+  <h1>My Tasks</h1>
+
+  <!-- Form to add new tasks -->
+  <form id="task-form">
+    <input type="text" id="task-title" placeholder="New task title" required />
+    <button type="submit">Add Task</button>
+  </form>
+
+  <!-- Container to show tasks -->
+  <ul id="task-list"></ul>
+
+  <script>
+    const apiUrl = 'http://localhost:3000/tasks'; // Your backend URL
+
+    // Get references
+    const taskList = document.getElementById('task-list');
+    const taskForm = document.getElementById('task-form');
+    const taskTitleInput = document.getElementById('task-title');
+
+    // Fetch tasks and show them
+    async function loadTasks() {
+      const res = await fetch(apiUrl);
+      const tasks = await res.json();
+
+      taskList.innerHTML = ''; // Clear list
+
+      tasks.forEach(task => {
+        const li = document.createElement('li');
+        li.textContent = task.title + ' ';
+
+        // Delete button for each task
+        const deleteBtn = document.createElement('button');
+        deleteBtn.textContent = 'Delete';
+        deleteBtn.onclick = async () => {
+          await fetch(`${apiUrl}/${task._id}`, { method: 'DELETE' });
+          loadTasks(); // Refresh list
+        };
+
+        li.appendChild(deleteBtn);
+        taskList.appendChild(li);
+      });
+    }
+
+    // Handle new task form submit
+    taskForm.onsubmit = async (e) => {
+      e.preventDefault();
+      const title = taskTitleInput.value;
+
+      await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title })
+      });
+
+      taskTitleInput.value = ''; // Clear input
+      loadTasks(); // Refresh list
+    };
+
+    // Load tasks on page load
+    loadTasks();
+  </script>
+</body>
+</html>
